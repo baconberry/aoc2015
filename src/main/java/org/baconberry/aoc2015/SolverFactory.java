@@ -1,9 +1,11 @@
 package org.baconberry.aoc2015;
 
 import org.baconberry.aoc2015.day.One;
+import org.baconberry.aoc2015.day.Two;
 
 public final class SolverFactory {
-    private SolverFactory(){}
+    private SolverFactory() {
+    }
 
     public static ISolver create(int day) {
         var czz = getDayClass(day);
@@ -18,6 +20,8 @@ public final class SolverFactory {
         switch (day) {
             case 1:
                 return One.class;
+            case 2:
+                return Two.class;
             default:
                 throw new UnsupportedOperationException();
         }
