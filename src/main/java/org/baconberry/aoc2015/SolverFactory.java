@@ -1,6 +1,7 @@
 package org.baconberry.aoc2015;
 
 import org.baconberry.aoc2015.day.One;
+import org.baconberry.aoc2015.day.Three;
 import org.baconberry.aoc2015.day.Two;
 
 public final class SolverFactory {
@@ -22,6 +23,8 @@ public final class SolverFactory {
                 return One.class;
             case 2:
                 return Two.class;
+            case 3:
+                return Three.class;
             default:
                 throw new UnsupportedOperationException();
         }
