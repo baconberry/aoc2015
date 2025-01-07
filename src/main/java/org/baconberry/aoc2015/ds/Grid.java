@@ -23,6 +23,16 @@ public class Grid<E> {
         return of(g);
     }
 
+    public static Grid<Integer> ofInt(int rows, int cols, int initValue) {
+        var g = new Integer[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                g[i][j] = initValue;
+            }
+        }
+        return of(g);
+    }
+
     public void setValue(int x, int y, E val) {
         arr[y][x] = val;
     }
