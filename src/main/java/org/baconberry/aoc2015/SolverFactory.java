@@ -33,6 +33,8 @@ public final class SolverFactory {
                 return Seven.class;
             case 8:
                 return Eight.class;
+            case 9:
+                return Nine.class;
             default:
                 throw new UnsupportedOperationException();
         }
