@@ -8,7 +8,7 @@ public class Utils {
     private Utils() {
     }
 
-    static Pattern singleNumber = Pattern.compile("(\\d+)");
+    static Pattern singleNumber = Pattern.compile("(-?\\d+)");
 
     public static List<Integer> lineToIntList(String line) {
         var matcher = singleNumber.matcher(line);
