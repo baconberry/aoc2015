@@ -11,6 +11,8 @@ import java.util.function.BiPredicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static org.baconberry.aoc2015.CollectionUtils.cowList;
+
 public class Nine implements ISolver {
     @Override
     public String solve(List<String> lines, int part) {
@@ -63,11 +65,6 @@ public class Nine implements ISolver {
         return current;
     }
 
-    private <E> List<E> cowList(List<E> src, E toAdd) {
-        return Stream.of(src, List.of(toAdd))
-                .flatMap(List::stream)
-                .toList();
-    }
 
     private Node getOrCreateNode(HashMap<String, Node> nodeMap, String key) {
         return nodeMap.computeIfAbsent(key, k -> new Node(k, new HashSet<>()));
