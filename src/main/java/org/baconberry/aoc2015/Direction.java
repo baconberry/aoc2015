@@ -1,7 +1,9 @@
 package org.baconberry.aoc2015;
 
 public enum Direction {
-    N, S, E, W, NONE;
+    N, S, E, W, NE, NW, SE, SW, NONE;
+
+    public static final Direction[] ALL_DIRS = new Direction[]{N, S, E, W, NE, NW, SE, SW};
 
 
     public static Direction parseChar(char c) {
@@ -20,6 +22,10 @@ public enum Direction {
             case S -> Point.of(0, -1);
             case E -> Point.of(1, 0);
             case W -> Point.of(-1, 0);
+            case NE -> Point.of(1, 1);
+            case NW -> Point.of(-1, 1);
+            case SW -> Point.of(-1, -1);
+            case SE -> Point.of(1, -1);
             case NONE -> Point.of(0, 0);
         };
     }
