@@ -15,12 +15,14 @@ public class Eighteen implements ISolver {
 
     char offValue = '.';
     char onValue = '#';
+    int part = 1;
 
     @Setter
     private int iterations = 100;
 
     @Override
     public String solve(List<String> lines, int part) {
+        this.part = part;
         var grid = Utils.parseCharGrid(lines);
         for (int i = 0; i < iterations; i++) {
             grid = activateLights(grid);
@@ -37,6 +39,7 @@ public class Eighteen implements ISolver {
     }
 
     Grid<Character> activateLights(Grid<Character> grid) {
+        setCornersOn(grid);
         var newGrid = grid.duplicate();
         grid.forEachPoint((p, c) -> {
             boolean isOn = c.equals(onValue);
@@ -47,6 +50,7 @@ public class Eighteen implements ISolver {
                 newGrid.setValue(p, onValue);
             }
         });
+        setCornersOn(newGrid);
         return newGrid;
     }
 
@@ -62,5 +66,15 @@ public class Eighteen implements ISolver {
 
     boolean isOn(Character c) {
         return c.equals(onValue);
+    }
+
+    void setCornersOn(Grid<Character> grid) {
+        if(part!=2){
+            return;
+        }
+        grid.setValue(0, 0, onValue);
+        grid.setValue(0, grid.getWidth() - 1, onValue);
+        grid.setValue(grid.getHeight() - 1, grid.getWidth() - 1, onValue);
+        grid.setValue(grid.getHeight() - 1, 0, onValue);
     }
 }

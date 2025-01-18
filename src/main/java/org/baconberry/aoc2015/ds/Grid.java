@@ -1,5 +1,6 @@
 package org.baconberry.aoc2015.ds;
 
+import lombok.Getter;
 import org.apache.commons.lang3.function.TriConsumer;
 import org.baconberry.aoc2015.Point;
 
@@ -10,7 +11,9 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public class Grid<E> {
+    @Getter
     final int height;
+    @Getter
     final int width;
 
     final ArrayList<ArrayList<E>> arr;
