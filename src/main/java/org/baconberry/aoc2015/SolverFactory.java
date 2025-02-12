@@ -55,6 +55,8 @@ public final class SolverFactory {
                 return Eighteen.class;
             case 20:
                 return Twenty.class;
+            case 21:
+                return Twentyone.class;
             default:
                 throw new UnsupportedOperationException();
         }
