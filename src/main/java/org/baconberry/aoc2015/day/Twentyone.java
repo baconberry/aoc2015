@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 public class Twentyone implements ISolver {
     private final List<Equipment> weapons = List.of(
@@ -38,30 +40,39 @@ public class Twentyone implements ISolver {
     );
     Player boss = new Player(109, 8, 2, Set.of());
 
+    BiPredicate<Integer, Integer> localComparator= (a,b)->a<b;
+    Predicate<Player> playerPredicate = this::defeatsBoss;
+    int defaultVal = Integer.MAX_VALUE;
+
     @Override
     public String solve(List<String> lines, int part) {
+        if(part ==2){
+            playerPredicate = Predicate.not(this::defeatsBoss);
+            localComparator = (a,b) -> a>b;
+            defaultVal = Integer.MIN_VALUE;
+        }
         var player = new Player(100, 0, 0, Set.of());
         var result = minCostToDefeat(player, weapons, armors, rings, rings);
-        return String.valueOf(result);
+        return String.valueOf(result.getLeft());
     }
 
     @SafeVarargs
     final Pair<Integer, Player> minCostToDefeat(Player player, List<Equipment>... sets) {
         if (sets.length == 0) {
             int cost = Optional.of(player)
-                    .filter(this::defeatsBoss)
+                    .filter(playerPredicate)
                     .map(this::equipmentCost)
-                    .orElse(Integer.MAX_VALUE);
+                    .orElse(defaultVal);
             return Pair.of(cost, player);
         }
 
         var set = sets[0];
-        int min = Integer.MAX_VALUE;
+        int min = defaultVal;
         Player minPlayer = null;
         for (Equipment equipment : set) {
 
             var localCost = minCostToDefeat(player.withEquipment(equipment), Arrays.copyOfRange(sets, 1, sets.length));
-            if (localCost.getLeft() < min) {
+            if (localComparator.test(localCost.getLeft(), min)) {
                 min = localCost.getLeft();
                 minPlayer = localCost.getRight();
             }
