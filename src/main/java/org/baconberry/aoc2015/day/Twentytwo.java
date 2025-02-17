@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.ToString;
 import lombok.With;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.baconberry.aoc2015.ISolver;
@@ -16,28 +17,34 @@ public class Twentytwo implements ISolver {
     List<Effect> effects = createEffects();
     int globalMin = Integer.MAX_VALUE;
 
+    int startTurnHandicap = 0;
+
 
     @Override
     public String solve(List<String> lines, int part) {
         var player = new Player(50, 500, 0, 0, List.of());
         var boss = new Player(51, 0, 9, 0, List.of());
+        if(part==2){
+            startTurnHandicap = 1;
+        }
 
-        var min = calculateMinManaCost(player, boss, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, List.of());
+        var min = calculateMinManaCost(player, boss, 0,  List.of());
 
         return String.valueOf(min);
     }
 
-    private Result calculateMinManaCost(Player player, Player boss, int manaCost, int maxMana, int level, int maxLevel, List<Effect> playerEffects) {
-        if (player.hp() <= 0 || manaCost >= player.mp || manaCost >= maxMana || level >= maxLevel || globalMin <= manaCost) {
-            return new Result(Integer.MAX_VALUE, level);
+    private int calculateMinManaCost(Player player, Player boss, int manaCost, List<Effect> playerEffects) {
+        player = player.withHp(player.hp - startTurnHandicap);
+        if (player.hp() <= 0 || manaCost >= player.mp || globalMin <= manaCost) {
+            return Integer.MAX_VALUE;
         }
         if (boss.hp() <= 0) {
-            return new Result(manaCost, level);
+            return manaCost;
         }
-        var min = new Result(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        var min = Integer.MAX_VALUE;
 
         for (Effect effect : effects) {
-            var effectClone = effect.toBuilder().build();
+            var effectClone = effect.cloneEffect();
             var effectList = cow(playerEffects, effectClone);
             var localPlayers = Pair.of(player, boss);
             for (Effect eff : effectList) {
@@ -46,13 +53,12 @@ public class Twentytwo implements ISolver {
             var playerClone = localPlayers.getLeft();
             int bossDamage = Math.max(1, boss.damage - player.armor());
             playerClone = playerClone.withHp(playerClone.hp - bossDamage);
-            var localResult = calculateMinManaCost(playerClone, localPlayers.getRight(), manaCost + effectClone.cost, min.cost, level + 1, maxLevel, effectList);
-            if (localResult.cost < min.cost) {
+            var localResult = calculateMinManaCost(playerClone, localPlayers.getRight(), manaCost + effectClone.cost, effectList);
+            if (localResult < min) {
                 min = localResult;
-                log.info("Current min: {}", min);
             }
-            if (globalMin > localResult.cost) {
-                globalMin = localResult.cost;
+            if (globalMin > localResult) {
+                globalMin = localResult;
             }
         }
         return min;
@@ -64,13 +70,10 @@ public class Twentytwo implements ISolver {
             if (effect.turns <= 0) {
                 continue;
             }
-            list.add(effect.toBuilder().build());
+            list.add(effect.cloneEffect());
         }
         list.add(toAdd);
         return list;
-    }
-
-    record Result(int cost, int level) {
     }
 
     @With
@@ -79,7 +82,7 @@ public class Twentytwo implements ISolver {
 
 
     @AllArgsConstructor
-    @Builder(toBuilder = true)
+    @SuperBuilder(toBuilder = true)
     @ToString(onlyExplicitlyIncluded = true)
     static class Effect {
         @ToString.Include
@@ -106,6 +109,10 @@ public class Twentytwo implements ISolver {
                     .withMp(player.mp + mana);
             return Pair.of(player, challenger);
         }
+
+        Effect cloneEffect(){
+            return this.toBuilder().build();
+        }
     }
 
     static class Shield extends Effect {
@@ -114,6 +121,10 @@ public class Twentytwo implements ISolver {
 
         public Shield(String name, int cost, int damage, int heal, int armor, int mana, int turns) {
             super(name, cost, damage, heal, armor, mana, turns);
+        }
+        public Shield(String name, int cost, int damage, int heal, int armor, int mana, int turns, boolean applied) {
+            super(name, cost, damage, heal, armor, mana, turns);
+            this.applied = applied;
         }
 
         @Override
@@ -129,6 +140,11 @@ public class Twentytwo implements ISolver {
             } finally {
                 applied = true;
             }
+        }
+
+        @Override
+        Effect cloneEffect() {
+            return new Shield(name, cost, damage, heal, armor, mana, turns, applied);
         }
     }
 
