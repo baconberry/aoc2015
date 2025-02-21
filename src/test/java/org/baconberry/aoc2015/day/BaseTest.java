@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BaseTest {
-    protected void solveInput(ISolver solver) throws IOException {
+    protected String solveInput(ISolver solver) throws IOException {
         var lines = readInput();
-        solver.solve(lines, 1);
+        return solver.solve(lines, 1);
     }
 
     private List<String> readInput() throws IOException {

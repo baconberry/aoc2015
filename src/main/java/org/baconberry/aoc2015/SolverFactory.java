@@ -38,6 +38,7 @@ public final class SolverFactory {
             case 20 -> Twenty.class;
             case 21 -> Twentyone.class;
             case 22 -> Twentytwo.class;
+            case 23 -> Twentythree.class;
             default -> throw new UnsupportedOperationException();
         };
     }
