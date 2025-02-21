@@ -10,14 +10,17 @@ public class Twentythree implements ISolver {
     public String solve(List<String> lines, int part) {
         var emu = new Emu();
         emu.code = new ArrayList<>(lines);
+        if (part == 2) {
+            emu.a = 1;
+        }
         emu.execute();
 
         return String.valueOf(emu.b);
     }
 
     private class Emu {
-        int a;
-        int b;
+        long a;
+        long b;
         int pc;
 
         ArrayList<String> code;

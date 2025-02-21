@@ -13,6 +13,10 @@ public abstract class BaseTest {
         var lines = readInput();
         return solver.solve(lines, 1);
     }
+    protected String solveInput(ISolver solver, int part) throws IOException {
+        var lines = readInput();
+        return solver.solve(lines, part);
+    }
 
     private List<String> readInput() throws IOException {
         FileReader fr = new FileReader("input.txt");
