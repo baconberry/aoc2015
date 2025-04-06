@@ -18,17 +18,30 @@ public class Twentyfour implements ISolver {
     private final Counter ops = Metrics.counter("Twentyfor.operations");
     private static final int[] EMPTY_ARR = new int[]{};
 
+    int operationCounter = 0;
+
+    int groupTarget;
+    BigInteger minQe = BigInteger.valueOf(Long.MAX_VALUE);
+
+    int minLen = Integer.MAX_VALUE;
+    private int lastGroup = 2;
+    private int totalGroups = 3;
+
     @Override
     public String solve(List<String> lines, int part) {
+        if (part == 2) {
+            lastGroup = 3;
+            totalGroups = 4;
+        }
         int[] weights = lines.stream()
                 .filter(Predicate.not(String::isBlank))
                 .mapToInt(Integer::parseInt)
                 .toArray();
         int total = sumArr(weights);
-        if (total % 3 != 0) {
+        if (total % totalGroups != 0) {
             throw new IllegalArgumentException("Invalid input, can't arrange 3 groups of the same weight");
         }
-        this.groupTarget = total / 3;
+        this.groupTarget = total / totalGroups;
         Arrays.sort(weights);
         int[] aux = new int[weights.length];
         for (int i = 0; i < weights.length; i++) {
@@ -42,18 +55,11 @@ public class Twentyfour implements ISolver {
         return String.valueOf(minQe);
     }
 
-    int operationCounter = 0;
-
-    int groupTarget;
-    BigInteger minQe = BigInteger.valueOf(Long.MAX_VALUE);
-
-    int minLen = Integer.MAX_VALUE;
-
 
     private int[] coinAlgo(int[] coins, int[] group, int[] discarded, int sum, int level) {
         operationCounter++;
         ops.increment();
-        if (level == 2) {
+        if (level == lastGroup) {
             // in this level there is only 1 possible sum of coins
             if (sumArr(coins) == sum) {
                 return coins;
