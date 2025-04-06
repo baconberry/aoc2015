@@ -33,4 +33,16 @@ public class CollectionUtils {
         newArr[arr.length] = e;
         return newArr;
     }
+
+    public static int[] merge(int[]a, int[]b){
+        int[] res = new int[a.length+b.length];
+        int idx = 0;
+        for (int i : a) {
+            res[idx++]= i;
+        }
+        for (int i : b) {
+            res[idx++]= i;
+        }
+        return res;
+    }
 }

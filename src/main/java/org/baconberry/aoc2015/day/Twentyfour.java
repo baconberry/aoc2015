@@ -1,81 +1,107 @@
 package org.baconberry.aoc2015.day;
 
-import org.baconberry.aoc2015.CollectionUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
+import lombok.extern.slf4j.Slf4j;
 import org.baconberry.aoc2015.ISolver;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 
+import static org.baconberry.aoc2015.CollectionUtils.cowAddInt;
+import static org.baconberry.aoc2015.CollectionUtils.merge;
+
+@Slf4j
 public class Twentyfour implements ISolver {
-    ExecutorService executor = Executors.newWorkStealingPool();
+    private final Counter ops = Metrics.counter("Twentyfor.operations");
+    private static final int[] EMPTY_ARR = new int[]{};
+
     @Override
     public String solve(List<String> lines, int part) {
         int[] weights = lines.stream()
                 .filter(Predicate.not(String::isBlank))
                 .mapToInt(Integer::parseInt)
                 .toArray();
-        int total = sum(weights);
+        int total = sumArr(weights);
         if (total % 3 != 0) {
             throw new IllegalArgumentException("Invalid input, can't arrange 3 groups of the same weight");
         }
         this.groupTarget = total / 3;
-        int[] qe = permuteGroups(new int[]{}, new int[]{}, new int[]{}, weights);
+        Arrays.sort(weights);
+        int[] aux = new int[weights.length];
+        for (int i = 0; i < weights.length; i++) {
+            aux[i] = weights[weights.length - 1 - i];
+        }
+        weights = aux;
 
-        return String.valueOf(product(qe));
+        coinAlgo(weights, EMPTY_ARR, EMPTY_ARR, groupTarget, 0);
+        log.info("Total operations [{}]", operationCounter);
+
+        return String.valueOf(minQe);
     }
+
+    int operationCounter = 0;
 
     int groupTarget;
-    long minQe = Integer.MAX_VALUE;
-    int minLenA = Integer.MAX_VALUE;
+    BigInteger minQe = BigInteger.valueOf(Long.MAX_VALUE);
 
-    private int[] permuteGroups(int[] a, int[] b, int[] c, int[] weights) {
-        if (a.length > minLenA) {
-            return null;
-        }
-        int aSum = sum(a);
-        if (aSum > groupTarget
-                || sum(b) > groupTarget
-                || sum(c) > groupTarget) {
-            return null;
-        }
-        if (weights.length == 0) {
-            if (aSum == sum(b) && aSum == sum(c)) {
-                return a;
+    int minLen = Integer.MAX_VALUE;
+
+
+    private int[] coinAlgo(int[] coins, int[] group, int[] discarded, int sum, int level) {
+        operationCounter++;
+        ops.increment();
+        if (level == 2) {
+            // in this level there is only 1 possible sum of coins
+            if (sumArr(coins) == sum) {
+                return coins;
             }
             return null;
         }
 
-        int[] res = null;
-        int[] newWeights = Arrays.copyOfRange(weights, 0, weights.length);
-        for (int weight : weights) {
-            newWeights = Arrays.copyOfRange(newWeights, 1, newWeights.length);
-            int[] localResult = permuteGroups(CollectionUtils.cowAddInt(a, weight), b, c, newWeights);
-            if (validateLocalResult(localResult)) {
-                res = CollectionUtils.cowAddInt(a, weight);
+        if (sum == 0) {
+            if (coinAlgo(merge(coins, discarded), EMPTY_ARR, EMPTY_ARR, groupTarget, level + 1) != null) {
+                if (level == 0) {
+                    if (minLen < group.length) {
+//                        log.info("Valid group found but longer than minLen [{}]", group);
+                        return null;
+                    } else if (minLen > group.length || productArr(group).compareTo(minQe) < 0) {
+                        minLen = group.length;
+                        minQe = productArr(group);
+//                        log.info("Found new min arr [{}]", group);
+                    }
+                } else {
+                    return group;
+                }
             }
-            localResult = permuteGroups(a, CollectionUtils.cowAddInt(b, weight), c, newWeights);
-            if (validateLocalResult(localResult)) {
-                res = CollectionUtils.cowAddInt(b, weight);
-            }
-            localResult = permuteGroups(a, b, CollectionUtils.cowAddInt(c, weight), newWeights);
-            if (validateLocalResult(localResult)) {
-                res = CollectionUtils.cowAddInt(c, weight);
-            }
+            return null;
+        } else if (sum < 0 || coins.length == 0) {
+            return null;
         }
-        return res;
+        int[] coinsWithoutFirst = Arrays.copyOfRange(coins, 1, coins.length);
+
+        //branch with
+        int[] with = coinAlgo(coinsWithoutFirst, cowAddInt(group, coins[0]), discarded, sum - coins[0], level);
+        if (with != null) {
+            return with;
+        }
+
+        // branch without
+        return coinAlgo(coinsWithoutFirst, group, cowAddInt(discarded, coins[0]), sum, level);
     }
 
-    int product(int[] a) {
-        int product = 1;
+
+    static BigInteger productArr(int[] a) {
+        var product = BigInteger.ONE;
         for (int i : a) {
-            product *= i;
+            product = product.multiply(BigInteger.valueOf(i));
         }
         return product;
     }
-    int sum(int[] a) {
+
+    static int sumArr(int[] a) {
         int sum = 0;
         for (int i : a) {
             sum += i;
@@ -83,19 +109,4 @@ public class Twentyfour implements ISolver {
         return sum;
     }
 
-    private boolean validateLocalResult(int[] localResult) {
-        if (localResult == null) {
-            return false;
-        }
-        if (localResult.length == minLenA && product(localResult) < minQe) {
-            minQe = product(localResult);
-            return true;
-        }
-        if (localResult.length < minLenA) {
-            minQe = product(localResult);
-            minLenA = localResult.length;
-            return true;
-        }
-        return false;
-    }
 }
