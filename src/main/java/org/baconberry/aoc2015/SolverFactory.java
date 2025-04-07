@@ -35,6 +35,7 @@ public final class SolverFactory {
             case 16 -> Sixteen.class;
             case 17 -> Seventeen.class;
             case 18 -> Eighteen.class;
+            case 19 -> Nineteen.class;
             case 20 -> Twenty.class;
             case 21 -> Twentyone.class;
             case 22 -> Twentytwo.class;
