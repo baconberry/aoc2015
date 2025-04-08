@@ -1,7 +1,9 @@
 package org.baconberry.aoc2015.day;
 
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.baconberry.aoc2015.CollectionUtils;
 import org.baconberry.aoc2015.ISolver;
 
 import java.util.ArrayList;
@@ -10,10 +12,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 public class Seventeen implements ISolver {
     @Setter
     private int liters = 150;
     int[] containers = new int[]{20, 15, 10, 5, 5};
+
 
     @Override
     public String solve(List<String> lines, int part) {
@@ -22,14 +26,67 @@ public class Seventeen implements ISolver {
             contArr[i] = Integer.parseInt(lines.get(i).trim());
         }
         containers = contArr;
-        var combinations = countCombinations(new int[containers.length], liters, new HashSet<>());
         if (part == 2) {
-            return String.valueOf(combinations.getRight());
+            ValPos[] valArr = new ValPos[contArr.length];
+            for (int i = 0; i < contArr.length; i++) {
+                valArr[i] = new ValPos(contArr[i], i);
+            }
+            int minLength = minCombination(new ValPos[]{}, valArr, liters);
+            return String.valueOf(countMinCombination(new ValPos[]{}, valArr, liters, minLength));
         }
+        var combinations = countCombinations(new int[containers.length], liters, new HashSet<>());
         return String.valueOf(combinations.getLeft());
     }
 
     Integer invalidMin = Integer.MAX_VALUE;
+
+    int countMinCombination(ValPos[] containers, ValPos[] valArr, int litersToFill, int minLen) {
+        if (litersToFill == 0 && containers.length == minLen) {
+            return 1;
+        }
+        if (containers.length > minLen) {
+            return 0;
+        }
+        if (litersToFill < 0 || valArr.length == 0) {
+            return 0;
+        }
+
+        int with = countMinCombination(
+                CollectionUtils.cowAdd(containers, valArr[0]),
+                Arrays.copyOfRange(valArr, 1, valArr.length),
+                litersToFill - valArr[0].value(),
+                minLen
+        );
+        int without = countMinCombination(
+                containers,
+                Arrays.copyOfRange(valArr, 1, valArr.length),
+                litersToFill,
+                minLen
+        );
+        return with + without;
+    }
+
+    int minCombination(ValPos[] containers, ValPos[] valArr, int litersToFill) {
+        if (litersToFill == 0) {
+            return containers.length;
+        }
+        if (litersToFill < 0 || valArr.length == 0) {
+            return Integer.MAX_VALUE;
+        }
+
+        var with = minCombination(
+                CollectionUtils.cowAdd(containers, valArr[0]),
+                Arrays.copyOfRange(valArr, 1, valArr.length),
+                litersToFill - valArr[0].value()
+        );
+        var without = minCombination(
+                containers,
+                Arrays.copyOfRange(valArr, 1, valArr.length),
+                litersToFill
+        );
+
+        return Math.min(with, without);
+    }
 
     Pair<Integer, Integer> countCombinations(int[] arr, int litersRemaining, Set<String> memo) {
         if (!isValidArr(arr)) {
@@ -68,5 +125,8 @@ public class Seventeen implements ISolver {
             }
         }
         return true;
+    }
+
+    record ValPos(int value, int pos) {
     }
 }
