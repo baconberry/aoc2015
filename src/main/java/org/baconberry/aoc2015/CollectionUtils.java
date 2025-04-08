@@ -2,8 +2,10 @@ package org.baconberry.aoc2015;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class CollectionUtils {
@@ -34,14 +36,20 @@ public class CollectionUtils {
         return newArr;
     }
 
-    public static int[] merge(int[]a, int[]b){
-        int[] res = new int[a.length+b.length];
+    public static <E> Set<E> cowSet(Set<E> set, E elem) {
+        Set<E> s = new HashSet<>(set);
+        s.add(elem);
+        return s;
+    }
+
+    public static int[] merge(int[] a, int[] b) {
+        int[] res = new int[a.length + b.length];
         int idx = 0;
         for (int i : a) {
-            res[idx++]= i;
+            res[idx++] = i;
         }
         for (int i : b) {
-            res[idx++]= i;
+            res[idx++] = i;
         }
         return res;
     }

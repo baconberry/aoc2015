@@ -21,4 +21,20 @@ class NineteenTest {
         var solver = new Nineteen();
         assertEquals("4", solver.solve(Arrays.asList(input.split("\n")), 1));
     }
+
+    @Test
+    void solve_part2() {
+        var input = """
+                e => H
+                e => O
+                H => HO
+                H => OH
+                O => HH
+                                
+                HOHOHO
+                """;
+
+        var solver = new Nineteen();
+        assertEquals("6", solver.solve(Arrays.asList(input.split("\n")), 2));
+    }
 }
