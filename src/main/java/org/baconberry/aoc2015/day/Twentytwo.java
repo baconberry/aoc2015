@@ -6,10 +6,13 @@ import lombok.With;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.baconberry.aoc2015.CollectionUtils;
 import org.baconberry.aoc2015.ISolver;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.baconberry.aoc2015.CollectionUtils.cowListMutable;
 
 @Slf4j
 public class Twentytwo implements ISolver {
@@ -27,18 +30,22 @@ public class Twentytwo implements ISolver {
             startTurnHandicap = 1;
         }
 
-        var min = playerTurn(player, boss, 0, List.of());
+        var min = playerTurn(player, boss, 0, List.of(), List.of());
 
         return String.valueOf(min);
     }
 
-    private int playerTurn(Player player, Player boss, int manaCost, List<IEffect> srcplayerEffects) {
-        player = player.takeDamage(startTurnHandicap);
+    private int playerTurn(Player player, Player boss, int manaCost, List<IEffect> srcplayerEffects, List<String> logs) {
+        logs = cowListMutable(logs, "Player's turn");
+        if (startTurnHandicap > 0) {
+            player = player.takeDamage(startTurnHandicap);
+            logs.add( "Player takes 1 handicap hit [%s]".formatted(player));
+        }
         if (player.isDead() || globalMin < manaCost) {
             return Integer.MAX_VALUE;
         }
         var playerEffects = clone(srcplayerEffects);
-        final var players = applyEffects(player, boss, playerEffects);
+        final var players = applyEffects(player, boss, playerEffects, logs);
         if (players.getRight().isDead()) {
             return manaCost;
         }
@@ -51,8 +58,9 @@ public class Twentytwo implements ISolver {
             }
 
             var localPlayers = effectClone.apply(players.getLeft(), players.getRight());
+            var localLogs = cowListMutable(logs, "Player casts [%s], players[%s]".formatted(effectClone, localPlayers));
             var effectList = cow(playerEffects, effectClone);
-            int localResult = bossTurn(localPlayers.getLeft(), localPlayers.getRight(), manaUsed, effectList);
+            int localResult = bossTurn(localPlayers.getLeft(), localPlayers.getRight(), manaUsed, effectList, localLogs);
             if (localResult < min) {
                 min = localResult;
             }
@@ -70,21 +78,28 @@ public class Twentytwo implements ISolver {
                 .toList();
     }
 
-    private Pair<Player, Player> applyEffects(Player player, Player boss, List<IEffect> playerEffects) {
+    private Pair<Player, Player> applyEffects(Player player, Player boss, List<IEffect> playerEffects, List<String> logs) {
         var players = Pair.of(player, boss);
         for (IEffect effect : playerEffects) {
+            boolean wasActive = effect.isActive();
             players = effect.apply(players.getLeft(), players.getRight());
+            if (wasActive) {
+                logs.add("Applied effect [%s], players [%s]".formatted(effect, players));
+            }
         }
         return players;
     }
 
-    private int bossTurn(Player player, Player boss, int manaCost, List<IEffect> playerEffects) {
-        var players = applyEffects(player, boss, playerEffects);
+    private int bossTurn(Player player, Player boss, int manaCost, List<IEffect> playerEffects, List<String> logs) {
+        logs.add("Boss turn");
+        var players = applyEffects(player, boss, playerEffects, logs);
         if (players.getRight().isDead()) {
             return manaCost;
         }
         var damagedPlayer = players.getRight().hit(players.getLeft());
-        return playerTurn(damagedPlayer, players.getRight(), manaCost, playerEffects);
+        int damage = Math.max(1, boss.damage() - players.getLeft().armor());
+        logs.add("Boss attacks for [%s] damage, player [%s]".formatted(damage, damagedPlayer));
+        return playerTurn(damagedPlayer, players.getRight(), manaCost, playerEffects, logs);
     }
 
     private boolean effectInList(IEffect effectClone, List<IEffect> effects) {
@@ -193,7 +208,7 @@ public class Twentytwo implements ISolver {
             try {
                 if (turns == 1 && !reverted) {
                     reverted = true;
-                    return super.apply(player.withArmor(player.armor() - armor), challenger);
+                    return super.apply(player.withArmor(player.armor() - 7), challenger);
                 }
                 return super.apply(player, challenger);
             } finally {

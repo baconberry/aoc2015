@@ -1,5 +1,6 @@
 package org.baconberry.aoc2015;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +17,14 @@ public class CollectionUtils {
         return Stream.of(src, List.of(toAdd))
                 .flatMap(List::stream)
                 .toList();
+    }
+
+    public static <E> List<E> cowListMutable(List<E> src, E toAdd) {
+        List<E> list = Stream.of(src, List.of(toAdd))
+                .flatMap(List::stream)
+                .toList();
+
+        return new ArrayList<>(list);
     }
 
     public static <K, V> Map<K, V> cowMap(Map<K, V> src, K key, V val) {
